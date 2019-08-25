@@ -81,7 +81,7 @@ class IPTVSetupImpl:
                                           (_('Install into the "%s".') % "IPTVPlayer/bin/gstplayer", GetBinDir("gstplayer", "")),
                                           (_("Do not install (not recommended)"), "")]
         # exteplayer3
-        self.exteplayer3Version = {'sh4':50, 'mipsel':50, 'armv7':50, 'armv5t':50}
+        self.exteplayer3Version = {'sh4':68, 'mipsel':68, 'armv7':68, 'armv5t':68}
         self.exteplayer3paths = ["/usr/bin/exteplayer3", GetBinDir("exteplayer3", "")]
         self._exteplayer3InstallChoiseList = [(_('Install into the "%s".') % ("/usr/bin/exteplayer3 (%s)" % _("recommended")), "/usr/bin/exteplayer3"),
                                           (_('Install into the "%s".') % "IPTVPlayer/bin/exteplayer3", GetBinDir("exteplayer3", "")),
@@ -104,7 +104,7 @@ class IPTVSetupImpl:
         self.e2icjsonPaths = [resolveFilename(SCOPE_PLUGINS, 'Extensions/IPTVPlayer/libs/e2icjson/e2icjson.so')]
 
         # hlsdl
-        self.hlsdlVersion = 0.21
+        self.hlsdlVersion = 0.24
         self.hlsdlPaths = [resolveFilename(SCOPE_PLUGINS, 'Extensions/IPTVPlayer/bin/hlsdl'), "/usr/bin/hlsdl"]
         
         # cmdwrap
@@ -112,7 +112,7 @@ class IPTVSetupImpl:
         self.cmdwrapPaths = [resolveFilename(SCOPE_PLUGINS, 'Extensions/IPTVPlayer/bin/cmdwrap'), "/usr/bin/cmdwrap"]
         
         # duk
-        self.dukVersion = 5 # "2.1.99 [experimental]" # real version
+        self.dukVersion = 6 # "2.3.0 [experimental]" # real version
         self.dukPaths = [resolveFilename(SCOPE_PLUGINS, 'Extensions/IPTVPlayer/bin/duk'), "/usr/bin/duk"]
         
         self.binaryInstalledSuccessfully = False
@@ -291,7 +291,7 @@ class IPTVSetupImpl:
     def getOpensslVersionFinished(self, stsTab, dataTab):
         printDBG("IPTVSetupImpl.getOpensslVersionFinished")
         if len(stsTab) > 0 and True == stsTab[-1]:
-            for ver in ['0.9.8', '1.0.0', '1.0.2']:
+            for ver in ['0.9.8', '1.0.0', '1.0.2', '.1.1']:
                 if ver in dataTab[-1]:
                     self.openSSLVersion = '.' + ver
                     break
@@ -307,7 +307,7 @@ class IPTVSetupImpl:
     def setOpenSSLVersion(self, ret=None):
         printDBG('Check opennSSL version')
         self.setInfo(_("Detection of the OpenSSL version."), _("OpenSSL lib is needed by wget and rtmpdump utilities."))
-        for ver in ['.0.9.8', '.1.0.0', '.1.0.2']:
+        for ver in ['.0.9.8', '.1.0.0', '.1.0.2', '.1.1']:
             libsslExist = False
             libcryptoExist = False
             libSSLPath = ''
@@ -332,7 +332,7 @@ class IPTVSetupImpl:
             self.libSSLPath = libSSLPath
             if '.1.0.2' == ver:
                 self.getOpenssl2Finished()
-            elif '.0.9.8' == ver:
+            elif '.0.9.8' == ver or '.1.1' == ver:
                 # old ssl version 0.9.8
                 self.getGstreamerVer()
             else:
@@ -375,7 +375,7 @@ class IPTVSetupImpl:
         
         # check if link for libssl.so.1.0.0 and libcrypto.so.1.0.0 are needed
         openSSlVerMap = {}
-        for ver in ['.1.0.0', '.1.0.2']:
+        for ver in ['.1.0.0', '.1.0.2', '.1.1']:
             for path in ['/usr/lib/', '/lib/', '/usr/local/lib/', '/local/lib/']:
                 for library in ['libssl.so', 'libcrypto.so']:
                     library += ver
@@ -948,9 +948,11 @@ class IPTVSetupImpl:
         self.binaryInstalledSuccessfully = False
             
         def _detectValidator(code, data):
+            printDBG("..:: e2iPlayer ::..  self.dukVersion = %s" % self.dukVersion)
             if 'restrict-memory' in data:
                 try:
                     ver = int(re.search('VER_FOR_IPTV\:\s([0-9]+?)\n', data).group(1))
+                    printDBG("..:: e2iPlayer ::..  Ver = %s" % ver)
                     if ver >= self.dukVersion:
                         return True, False
                 except Exception:
@@ -968,8 +970,8 @@ class IPTVSetupImpl:
             softfpu = ''
             versions = {'sh4':2190, 'mipsel':2200}
             
-            if platform in ['sh4', 'mipsel'] and (self.binaryInstalledSuccessfully or self.glibcVersion < versions[platform] ):
-                old = '_old'
+#           if platform in ['sh4', 'mipsel'] and (self.binaryInstalledSuccessfully or self.glibcVersion < versions[platform] ):
+#               old = '_old'
             
             if platform == 'mipsel' and not IsFPUAvailable():
                 softfpu = '_softfpu'
@@ -1057,16 +1059,16 @@ class IPTVSetupImpl:
         if len(self.ffmpegVersion) >= 5:
             shortFFmpegVersion = self.ffmpegVersion[:-2]
             
-        if self.platform in ['sh4'] and shortFFmpegVersion in ['1.0', '1.1', '1.2', '2.0', '2.2', '2.5', '2.6', '2.7', '2.8', '3.0', '3.1', '3.2', '3.3', '3.4']: 
+        if self.platform in ['sh4'] and shortFFmpegVersion in ['1.0', '1.1', '1.2', '2.0', '2.2', '2.5', '2.6', '2.7', '2.8', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1', '4.2']: 
             self.ffmpegVersion = shortFFmpegVersion
             self.exteplayer3Step()
-        elif self.platform in ['mipsel'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4']:
+        elif self.platform in ['mipsel'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1', '4.2']:
             self.ffmpegVersion = shortFFmpegVersion
             self.exteplayer3Step()
-        elif self.platform in ['armv7'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4']:
+        elif self.platform in ['armv7'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1', '4.2']:
             self.ffmpegVersion = shortFFmpegVersion
             self.exteplayer3Step()
-        elif self.platform in ['armv5t'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4']:
+        elif self.platform in ['armv5t'] and shortFFmpegVersion in ['2.8', '3.0', '3.1', '3.2', '3.3', '3.4', '4.0', '4.1', '4.2']:
             self.ffmpegVersion = shortFFmpegVersion
             self.exteplayer3Step()
         elif "" != self.gstreamerVersion: self.gstplayerStep()
